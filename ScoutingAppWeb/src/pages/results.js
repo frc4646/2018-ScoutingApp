@@ -34,8 +34,6 @@ class Root extends Component {
   }
 
   componentDidMount() {
-    window.scrollTo(0, 0);
-    
     this.tp.get().then((initialData) => {
       let data = [];
 
@@ -126,8 +124,6 @@ class ResultSpecific extends Component {
   }
 
   componentDidMount() {
-    window.scrollTo(0, 0);
-
     this.tmp.get().then((initialData) => {
       let data = [];
 
