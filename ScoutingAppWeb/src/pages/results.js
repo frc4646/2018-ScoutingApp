@@ -11,6 +11,16 @@ import Button from 'material-ui/Button';
 import Divider from 'material-ui/Divider';
 import _ from 'lodash';
 
+export const stringToBoolean = (string) => {
+  switch(string.toLowerCase().trim()) {
+      case "true": case "yes": case "1":
+        return true;
+      case "false": case "no": case "0": case null:
+        return false;
+      default: return Boolean(string);
+  }
+}
+
 class Root extends Component {
   state = {
     ds: [],
@@ -100,6 +110,7 @@ class ResultSpecific extends Component {
     team: {},
     teamMatchPointer: {},
     collate: {},
+    doneYet: false,
   };
 
   tmp = {};
@@ -145,35 +156,65 @@ class ResultSpecific extends Component {
   collate() {
     let collate = {
       autoCross: [],
+      autoCross_Count: [],
       autoCubePickup: [],
+      autoCubePickup_Count: [],
       autoCubePickupLocation: [],
+      autoCubePickupLocation_Count: [],
       autoCubeWrong: [],
+      autoCubeWrong_Count: [],
       autoCubeWrongCount: [],
+      autoCubeWrongCount_Count: [],
       autoSwitchCube: [],
+      autoSwitchCube_Count: [],
       autoSwitchCubeCount: [],
-      startingPosition: [],
-      teleopAllianceSwitchCube: [],
-      teleopAllianceSwitchCubeCount: [],
-      teleopAllianceSwitchCubeWrong: [],
-      teleopAllianceSwitchCubeWrongCount: [],
-      teleopDefense: [],
-      teleopExchangeCube: [],
-      teleopExchangeCubeCount: [],
-      teleopOpponentSwitchCube: [],
-      teleopOpponentSwitchCubeCount: [],
-      teleopOpponentSwitchCubeWrong: [],
-      teleopOpponentSwitchCubeWrongCount: [],
-      teleopScaleCube: [],
-      teleopScaleCubeCount: [],
-      teleopScaleCubeWrong: [],
-      teleopScaleCubeWrongCount: [],
+      autoSwitchCubeCount_Count: [],
       endgameClimbLocation: [],
+      endgameClimbLocation_Count: [],
       endgameClimbStatus: [],
+      endgameClimbStatus_Count: [],
       powerupBoost: [],
       powerupBoostCount: [],
+      powerupBoostCount_Count: [],
+      powerupBoost_Count: [],
       powerupForce: [],
       powerupForceCount: [],
+      powerupForceCount_Count: [],
+      powerupForce_Count: [],
       powerupLevitate: [],
+      powerupLevitate_Count: [],
+      startingPosition: [],
+      startingPosition_Count: [],
+      teleopAllianceSwitchCube: [],
+      teleopAllianceSwitchCubeCount: [],
+      teleopAllianceSwitchCubeCount_Count: [],
+      teleopAllianceSwitchCubeWrong: [],
+      teleopAllianceSwitchCubeWrongCount: [],
+      teleopAllianceSwitchCubeWrongCount_Count: [],
+      teleopAllianceSwitchCubeWrong_Count: [],
+      teleopAllianceSwitchCube_Count: [],
+      teleopDefense: [],
+      teleopDefense_Count: [],
+      teleopExchangeCube: [],
+      teleopExchangeCubeCount: [],
+      teleopExchangeCubeCount_Count: [],
+      teleopExchangeCube_Count: [],
+      teleopOpponentSwitchCube: [],
+      teleopOpponentSwitchCubeCount: [],
+      teleopOpponentSwitchCubeCount_Count: [],
+      teleopOpponentSwitchCubeWrong: [],
+      teleopOpponentSwitchCubeWrongCount: [],
+      teleopOpponentSwitchCubeWrongCount_Count: [],
+      teleopOpponentSwitchCubeWrong_Count: [],
+      teleopOpponentSwitchCube_Count: [],
+      teleopScaleCube: [],
+      teleopScaleCubeCount: [],
+      teleopScaleCubeCount_Count: [],
+      teleopScaleCubeWrong: [],
+      teleopScaleCubeWrongCount: [],
+      teleopScaleCubeWrongCount_Count: [],
+      teleopScaleCubeWrong_Count: [],
+      teleopScaleCube_Count: [],
     };
     this.state.ds.forEach((match) => {
       let data = match.data;
@@ -210,6 +251,7 @@ class ResultSpecific extends Component {
 
     this.setState({
       collate: collate,
+      doneYet: true,
     })
   }
 
@@ -218,9 +260,15 @@ class ResultSpecific extends Component {
   }
   
   render() {
-    const { team, collate } = this.state;
+    const { team, collate, doneYet } = this.state;
 
-    console.log(_.pickBy(collate, (p, key) => !_.endsWith(key, '_Count')), 'what');
+    if (!doneYet) {
+      return (
+        <Typography type="headline">
+          Loading...
+        </Typography>
+      );
+    }
 
     return (
       <div>
@@ -229,11 +277,11 @@ class ResultSpecific extends Component {
             style={{
               height: 800
             }}
-            image={team.robotImage}
+            image={team.robotImage || "/build/cat.jpg"}
             title={team.name}
           />
           <CardContent>
-            <Typography type="headline" component="h2">
+            <Typography type="display4" component="h2">
               {team.name}
             </Typography>
             <Typography component="p">
@@ -244,18 +292,66 @@ class ResultSpecific extends Component {
               margin: '1rem 0'
             }} />
             <div>
-              <Typography type="title">
+              <Typography type="display1" gutterBottom>
                 Overview
               </Typography>
+              <Typography type="title">
+                Auto
+              </Typography>
+              <Divider style={{
+                marginBottom: '.5rem'
+              }} />
               <Grid container>
-                {_.map(_.pickBy(collate, (p, key) => !(_.endsWith(key, '_Count') || _.endsWith(key, 'Count'))), (arg1, arg2) => {
-                  console.log(arg1, arg2, collate[`${arg2}_Count`]);
-                  return (
+                <Grid item xs={3}>
+                  <Typography type="body1">
+                    Auto Cross: {stringToBoolean(collate['autoCross_Count'][0]) ? 'Yes' : 'No'} - {collate['autoCross_Count'][1]} out of {_.size(collate['autoCross'])} times
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography type="body1">
+                    Auto Cube Pickup: {stringToBoolean(collate['autoCubePickup_Count'][0]) ? 'Yes' : 'No'} - {collate['autoCubePickup_Count'][1]} out of {_.size(collate['autoCubePickup'])} times
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography type="body1">
+                    Auto Cube Pickup Location: {_.capitalize(collate['autoCubePickupLocation_Count'][0]) || 'undefined'} - {collate['autoCubePickupLocation_Count'][1]} out of {_.size(collate['autoCubePickupLocation'])} times
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography type="body1">
+                    Auto Cube on Switch: {stringToBoolean(collate['autoSwitchCube_Count'][0]) ? 'Yes' : 'No'} - {collate['autoSwitchCube_Count'][1]} out of {_.size(collate['autoSwitchCube'])} times
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography type="body1">
+                    T# of Auto Cube on Switch: {collate['autoSwitchCubeCount_Count'][0]}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography type="body1">
+                    Auto Cube on Wrong Side: {stringToBoolean(collate['autoCubeWrong_Count'][0]) ? 'Yes' : 'No'} - {collate['autoCubeWrong_Count'][1]} out of {_.size(collate['autoCubeWrong'])} times
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography type="body1">
+                    T# of Auto Cube on Wrong Side: {collate['autoCubeWrongCount_Count'][0]}
+                  </Typography>
+                </Grid>
+                <Grid item xs={3}>
+                  <Typography type="body1">
+                    Starting Position: {_.capitalize(collate['startingPosition_Count'][0])} - {collate['startingPosition_Count'][1]} out of {_.size(collate['startingPosition'])} times
+                  </Typography>
+                </Grid>
+                {/* {_.map(_.pickBy(collate, (p, key) => !(_.endsWith(key, '_Count') || _.endsWith(key, 'Count'))), (arg1, arg2) => {
+                  console.log(arg1, arg2, collate[`${arg2}_Count`], 'nise');
+                  return ( 
                     <Grid item xs={4}>
-                      {arg2}: They did {collate[`${arg2}_Count`][0]} - {collate[`${arg2}_Count`][1]} out of {_.size(arg1)} times {/*LETL*/}
+                      <Typography type="headline">
+                        {arg2}: They did {collate[`${arg2}_Count`][0]} - {collate[`${arg2}_Count`][1]} out of {_.size(arg1)} times
+                      </Typography>
                     </Grid>
                   );
-                })}
+                })} */}
               </Grid>
             </div>
           </CardContent>
