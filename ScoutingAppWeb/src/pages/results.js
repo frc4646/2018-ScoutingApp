@@ -271,7 +271,7 @@ class ResultSpecific extends Component {
         <Card>
           <CardMedia
             style={{
-              height: 800
+              height: 650
             }}
             image={team.robotImage || "/build/cat.jpg"}
             title={team.name}
