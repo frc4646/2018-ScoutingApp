@@ -150,6 +150,7 @@ class ResultSpecific extends Component {
   }
 
   collate() {
+    //Notice: Initalizing all the properties like this will cause duplicate x_Count_Count indicies, however since the output is static, it does not cause any issues.
     let collate = {
       autoCross: [],
       autoCross_Count: [],
@@ -291,22 +292,66 @@ class ResultSpecific extends Component {
               <Typography type="display1" gutterBottom>
                 Overview
               </Typography>
-              <Typography type="title">
-                Auto
-              </Typography>
-              <Divider style={{
-                marginBottom: '.5rem'
-              }} />
-              <Grid container>
-                <Grid item xs={3}>
-                  <Typography type="body1">
-                    Auto Cross: {stringToBoolean(collate['autoCross_Count'][0]) ? 'Yes' : 'No'} - {collate['autoCross_Count'][1]} out of {_.size(collate['autoCross'])} times
-                  </Typography>
+              <div>
+                <Typography type="title">
+                  Auto
+                </Typography>
+                <Divider style={{
+                  marginBottom: '.5rem'
+                }} />
+                <Grid container>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      Auto Cross: {stringToBoolean(collate['autoCross_Count'][0]) ? 'Yes' : 'No'} - {collate['autoCross_Count'][1]} out of {_.size(collate['autoCross'])} times
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      Auto Cube Pickup: {stringToBoolean(collate['autoCubePickup_Count'][0]) ? 'Yes' : 'No'} - {collate['autoCubePickup_Count'][1]} out of {_.size(collate['autoCubePickup'])} times
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      Auto Cube Pickup Location: {_.capitalize(collate['autoCubePickupLocation_Count'][0]) || 'undefined'} - {collate['autoCubePickupLocation_Count'][1]} out of {_.size(collate['autoCubePickupLocation'])} times
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      Auto Cube on Switch: {stringToBoolean(collate['autoSwitchCube_Count'][0]) ? 'Yes' : 'No'} - {collate['autoSwitchCube_Count'][1]} out of {_.size(collate['autoSwitchCube'])} times
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      T# of Auto Cube on Switch: {collate['autoSwitchCubeCount_Count'][0]}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      Auto Cube on Wrong Side: {stringToBoolean(collate['autoCubeWrong_Count'][0]) ? 'Yes' : 'No'} - {collate['autoCubeWrong_Count'][1]} out of {_.size(collate['autoCubeWrong'])} times
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      T# of Auto Cube on Wrong Side: {collate['autoCubeWrongCount_Count'][0]}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      Starting Position: {_.capitalize(collate['startingPosition_Count'][0])} - {collate['startingPosition_Count'][1]} out of {_.size(collate['startingPosition'])} times
+                    </Typography>
+                  </Grid>
+                  {/* {_.map(_.pickBy(collate, (p, key) => !(_.endsWith(key, '_Count') || _.endsWith(key, 'Count'))), (arg1, arg2) => {
+                    console.log(arg1, arg2, collate[`${arg2}_Count`], 'nise');
+                    return ( 
+                      <Grid item xs={4}>
+                        <Typography type="headline">
+                          {arg2}: They did {collate[`${arg2}_Count`][0]} - {collate[`${arg2}_Count`][1]} out of {_.size(arg1)} times
+                        </Typography>
+                      </Grid>
+                    );
+                  })} */}
                 </Grid>
-                <Grid item xs={3}>
-                  <Typography type="body1">
-                    Auto Cube Pickup: {stringToBoolean(collate['autoCubePickup_Count'][0]) ? 'Yes' : 'No'} - {collate['autoCubePickup_Count'][1]} out of {_.size(collate['autoCubePickup'])} times
-                  </Typography>
+              </div>
                 </Grid>
                 <Grid item xs={3}>
                   <Typography type="body1">
@@ -337,18 +382,31 @@ class ResultSpecific extends Component {
                   <Typography type="body1">
                     Starting Position: {_.capitalize(collate['startingPosition_Count'][0])} - {collate['startingPosition_Count'][1]} out of {_.size(collate['startingPosition'])} times
                   </Typography>
+              <div>
+                <Typography type="title">
+                  Powerups
+                </Typography>
+                <Divider style={{
+                  marginBottom: '.5rem'
+                }} />
+                <Grid container>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      Played Boost: {stringToBoolean(collate['powerupBoost_Count'][0]) ? 'Yes' : 'No'} - {collate['powerupBoost_Count'][1]} out of {_.size(collate['powerupBoost'])} times - Avg: {_.mean(collate['powerupBoostCount'])}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      Played Force: {stringToBoolean(collate['powerupForce_Count'][0]) ? 'Yes' : 'No'} - {collate['powerupForce_Count'][1]} out of {_.size(collate['powerupForce'])} times - Avg: {_.mean(collate['powerupForceCount'])}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      Played Levitate: {stringToBoolean(collate['teleopDefense_Count'][0]) ? 'Yes' : 'No'} - {collate['teleopDefense_Count'][1]} out of {_.size(collate['teleopDefense'])} times
+                    </Typography>
+                  </Grid>
                 </Grid>
-                {/* {_.map(_.pickBy(collate, (p, key) => !(_.endsWith(key, '_Count') || _.endsWith(key, 'Count'))), (arg1, arg2) => {
-                  console.log(arg1, arg2, collate[`${arg2}_Count`], 'nise');
-                  return ( 
-                    <Grid item xs={4}>
-                      <Typography type="headline">
-                        {arg2}: They did {collate[`${arg2}_Count`][0]} - {collate[`${arg2}_Count`][1]} out of {_.size(arg1)} times
-                      </Typography>
-                    </Grid>
-                  );
-                })} */}
-              </Grid>
+              </div>
             </div>
           </CardContent>
         </Card>
