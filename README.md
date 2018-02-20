@@ -17,4 +17,4 @@
 This application includes the Roboto font, which is licensed under the Apache License 2.0.
 As for the application itself, it is licensed under the X11/MIT License.
 
-
+# Note: At any point in time this code may be broken. Always assume that master is broken, unless stated otherwise.
