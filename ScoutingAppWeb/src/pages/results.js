@@ -8,8 +8,14 @@ import Grid from "material-ui/Grid/Grid";
 import Typography from 'material-ui/Typography';
 import Card, { CardActions, CardContent, CardMedia } from 'material-ui/Card';
 import Button from 'material-ui/Button';
+import IconButton from 'material-ui/IconButton';
 import Divider from 'material-ui/Divider';
 import _ from 'lodash';
+import Paper from 'material-ui/Paper';
+import FilterListIcon from 'material-ui-icons/FilterList';
+import Collapse from 'material-ui/transitions/Collapse';
+import { MenuItem } from 'material-ui/Menu';
+import Select from 'material-ui/Select';
 
 export const stringToBoolean = (string) => {
   switch(string.toLowerCase().trim()) {
@@ -21,10 +27,77 @@ export const stringToBoolean = (string) => {
   }
 }
 
+//Notice: Initalizing all the properties like this will cause duplicate x_Count_Count indicies, however since the output is static, it does not cause any issues.
+const availableThingsToDo = {
+  autoCross: [],
+  autoCross_Count: [],
+  autoCubePickup: [],
+  autoCubePickup_Count: [],
+  autoCubePickupLocation: [],
+  autoCubePickupLocation_Count: [],
+  autoCubeWrong: [],
+  autoCubeWrong_Count: [],
+  autoCubeWrongCount: [],
+  autoCubeWrongCount_Count: [],
+  autoSwitchCube: [],
+  autoSwitchCube_Count: [],
+  autoSwitchCubeCount: [],
+  autoSwitchCubeCount_Count: [],
+  endgameClimbLocation: [],
+  endgameClimbLocation_Count: [],
+  endgameClimbStatus: [],
+  endgameClimbStatus_Count: [],
+  powerupBoost: [],
+  powerupBoostCount: [],
+  powerupBoostCount_Count: [],
+  powerupBoost_Count: [],
+  powerupForce: [],
+  powerupForceCount: [],
+  powerupForceCount_Count: [],
+  powerupForce_Count: [],
+  powerupLevitate: [],
+  powerupLevitate_Count: [],
+  startingPosition: [],
+  startingPosition_Count: [],
+  teleopAllianceSwitchCube: [],
+  teleopAllianceSwitchCubeCount: [],
+  teleopAllianceSwitchCubeCount_Count: [],
+  teleopAllianceSwitchCubeWrong: [],
+  teleopAllianceSwitchCubeWrongCount: [],
+  teleopAllianceSwitchCubeWrongCount_Count: [],
+  teleopAllianceSwitchCubeWrong_Count: [],
+  teleopAllianceSwitchCube_Count: [],
+  teleopDefense: [],
+  teleopDefense_Count: [],
+  teleopExchangeCube: [],
+  teleopExchangeCubeCount: [],
+  teleopExchangeCubeCount_Count: [],
+  teleopExchangeCube_Count: [],
+  teleopOpponentSwitchCube: [],
+  teleopOpponentSwitchCubeCount: [],
+  teleopOpponentSwitchCubeCount_Count: [],
+  teleopOpponentSwitchCubeWrong: [],
+  teleopOpponentSwitchCubeWrongCount: [],
+  teleopOpponentSwitchCubeWrongCount_Count: [],
+  teleopOpponentSwitchCubeWrong_Count: [],
+  teleopOpponentSwitchCube_Count: [],
+  teleopScaleCube: [],
+  teleopScaleCubeCount: [],
+  teleopScaleCubeCount_Count: [],
+  teleopScaleCubeWrong: [],
+  teleopScaleCubeWrongCount: [],
+  teleopScaleCubeWrongCount_Count: [],
+  teleopScaleCubeWrong_Count: [],
+  teleopScaleCube_Count: [],
+};
+
 class Root extends Component {
   state = {
     ds: [],
     teamsPointer: {},
+    collapseOpen: false,
+    queryBits: "",
+    queryBitsSort: "",
   };
 
   tp = {};
@@ -62,10 +135,48 @@ class Root extends Component {
   render() {
     const { classes } = this.props;
 
-    console.log(this.state.ds);
-
     return (
-      <Grid container>
+      <Grid container>   
+        <Grid item xs={12}>
+          <Paper>
+            <IconButton onClick={() => this.setState({collapseOpen: !!!this.state.collapseOpen})}>
+              <FilterListIcon />
+            </IconButton>
+            <Collapse in={this.state.collapseOpen} timeout="auto" unmountOnExit>
+              <div>
+                <Typography type="body1" component="p">
+                  Query
+                </Typography>
+                <Typography type="body2" component="span">
+                  SELECT WHERE IS 
+                </Typography>
+                <Select
+                  value={this.state.queryBits}
+                  onChange={(e) => this.setState({queryBits: e.target.value})}
+                >
+                  {_.map(_.pickBy(availableThingsToDo, (p, key) => !(_.endsWith(key, '_Count') || _.endsWith(key, 'Count'))), (z, arg2) => {
+                    return (
+                      <MenuItem value={false} key={Math.random()}>
+                        {_.startCase(arg2)}
+                      </MenuItem>
+                    );
+                  })}
+                </Select>
+                <Select
+                  value={this.state.queryBitsSort}
+                  onChange={(e) => this.setState({queryBitsSort: e.target.value})}
+                >
+                  <MenuItem value="low">
+                    Lowest
+                  </MenuItem>
+                  <MenuItem value="high">
+                    Highest
+                  </MenuItem>
+                </Select>
+              </div>
+            </Collapse>
+          </Paper>
+        </Grid>
         {this.state.ds.map(team => {
           return (
             <Grid key={Math.random()} item xs={3}>
@@ -150,69 +261,8 @@ class ResultSpecific extends Component {
   }
 
   collate() {
-    //Notice: Initalizing all the properties like this will cause duplicate x_Count_Count indicies, however since the output is static, it does not cause any issues.
-    let collate = {
-      autoCross: [],
-      autoCross_Count: [],
-      autoCubePickup: [],
-      autoCubePickup_Count: [],
-      autoCubePickupLocation: [],
-      autoCubePickupLocation_Count: [],
-      autoCubeWrong: [],
-      autoCubeWrong_Count: [],
-      autoCubeWrongCount: [],
-      autoCubeWrongCount_Count: [],
-      autoSwitchCube: [],
-      autoSwitchCube_Count: [],
-      autoSwitchCubeCount: [],
-      autoSwitchCubeCount_Count: [],
-      endgameClimbLocation: [],
-      endgameClimbLocation_Count: [],
-      endgameClimbStatus: [],
-      endgameClimbStatus_Count: [],
-      powerupBoost: [],
-      powerupBoostCount: [],
-      powerupBoostCount_Count: [],
-      powerupBoost_Count: [],
-      powerupForce: [],
-      powerupForceCount: [],
-      powerupForceCount_Count: [],
-      powerupForce_Count: [],
-      powerupLevitate: [],
-      powerupLevitate_Count: [],
-      startingPosition: [],
-      startingPosition_Count: [],
-      teleopAllianceSwitchCube: [],
-      teleopAllianceSwitchCubeCount: [],
-      teleopAllianceSwitchCubeCount_Count: [],
-      teleopAllianceSwitchCubeWrong: [],
-      teleopAllianceSwitchCubeWrongCount: [],
-      teleopAllianceSwitchCubeWrongCount_Count: [],
-      teleopAllianceSwitchCubeWrong_Count: [],
-      teleopAllianceSwitchCube_Count: [],
-      teleopDefense: [],
-      teleopDefense_Count: [],
-      teleopExchangeCube: [],
-      teleopExchangeCubeCount: [],
-      teleopExchangeCubeCount_Count: [],
-      teleopExchangeCube_Count: [],
-      teleopOpponentSwitchCube: [],
-      teleopOpponentSwitchCubeCount: [],
-      teleopOpponentSwitchCubeCount_Count: [],
-      teleopOpponentSwitchCubeWrong: [],
-      teleopOpponentSwitchCubeWrongCount: [],
-      teleopOpponentSwitchCubeWrongCount_Count: [],
-      teleopOpponentSwitchCubeWrong_Count: [],
-      teleopOpponentSwitchCube_Count: [],
-      teleopScaleCube: [],
-      teleopScaleCubeCount: [],
-      teleopScaleCubeCount_Count: [],
-      teleopScaleCubeWrong: [],
-      teleopScaleCubeWrongCount: [],
-      teleopScaleCubeWrongCount_Count: [],
-      teleopScaleCubeWrong_Count: [],
-      teleopScaleCube_Count: [],
-    };
+    let collate = availableThingsToDo;
+
     this.state.ds.forEach((match) => {
       let data = match.data;
       console.log(match.data);
