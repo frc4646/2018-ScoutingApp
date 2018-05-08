@@ -1,0 +1,32 @@
+Arguments: 
+  /home/meun5/.nvm/versions/node/v9.7.1/bin/node /usr/share/yarn/bin/yarn.js serve
+
+PATH: 
+  /home/meun5/Android/Sdk/platform-tools:/home/meun5/bin:/home/meun5/.local/bin:/home/meun5/.yarn/bin:/home/meun5/.nvm/versions/node/v9.7.1/bin:/home/meun5/Android/Sdk/platform-tools:/home/meun5/bin:/home/meun5/.local/bin:/home/meun5/.yarn/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
+Yarn version: 
+  1.5.1
+
+Node version: 
+  9.7.1
+
+Platform: 
+  linux x64
+
+npm manifest: 
+  No manifest
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
+
+Trace: 
+  Error: Couldn't find a package.json file in "/mnt/c/Source/Android/React-Native/2018ScoutingApp"
+      at new MessageError (/usr/share/yarn/lib/cli.js:186:110)
+      at /usr/share/yarn/lib/cli.js:40048:15
+      at Generator.next (<anonymous>)
+      at step (/usr/share/yarn/lib/cli.js:98:30)
+      at /usr/share/yarn/lib/cli.js:109:13
+      at <anonymous>

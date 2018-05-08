@@ -72,6 +72,10 @@ import com.android.build.OutputFile
  * ]
  */
 
+project.ext.react = [
+    entryFile: "index.js"
+]
+
 apply from: "../../node_modules/react-native/react.gradle"
 
 /**
@@ -111,12 +115,24 @@ android {
             include "armeabi-v7a", "x86"
         }
     }
+    signingConfigs {
+        release {
+            if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+                storeFile file(MYAPP_RELEASE_STORE_FILE)
+                storePassword MYAPP_RELEASE_STORE_PASSWORD
+                keyAlias MYAPP_RELEASE_KEY_ALIAS
+                keyPassword MYAPP_RELEASE_KEY_PASSWORD
+            }
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+    
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
@@ -133,8 +149,17 @@ android {
 }
 
 dependencies {
+    compile(project(':react-native-firebase')) {
+        transitive = false
+    }
     compile project(':react-native-vector-icons')
+    compile project(':react-native-orientation')
     compile fileTree(dir: "libs", include: ["*.jar"])
+    // Firebase dependencies
+    compile "com.google.android.gms:play-services-base:11.8.0"
+    compile "com.google.firebase:firebase-firestore:11.8.0"
+    compile "com.google.firebase:firebase-auth:11.8.0"
+    compile "com.google.firebase:firebase-core:11.8.0"
     compile "com.android.support:appcompat-v7:23.0.1"
     compile "com.facebook.react:react-native:+"  // From node_modules
 }
@@ -145,3 +170,5 @@ task copyDownloadableDepsToLibs(type: Copy) {
     from configurations.compile
     into 'libs'
 }
+
+apply plugin: 'com.google.gms.google-services'

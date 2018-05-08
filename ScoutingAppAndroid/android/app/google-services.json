@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1022430903929",
+    "firebase_url": "https://scoutingapp-be1ee.firebaseio.com",
+    "project_id": "scoutingapp-be1ee",
+    "storage_bucket": "scoutingapp-be1ee.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1022430903929:android:ed150fd831e6ec76",
+        "android_client_info": {
+          "package_name": "com.scoutingappandroid"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1022430903929-v9c20uht1s4d1p78b96kfe2a0hakkmdn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAl0f4fYtCC1PVDa_4A4ZTGI7S7nyFtlXQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

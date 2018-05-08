@@ -1,0 +1,5 @@
+{
+  "presets": ["env", "react-native", "flow", "react", "stage-1"],
+  "plugins": ["transform-decorators-legacy"],
+  "sourceMaps": true
+}

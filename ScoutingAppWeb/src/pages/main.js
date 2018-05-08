@@ -18,6 +18,7 @@ import { Team, Match } from '../classes/MatHaz';
 import IconButton from 'material-ui/IconButton';
 import SettingsIcon from 'material-ui-icons/Settings';
 import * as Consts from '../consts';
+import _ from 'lodash';
 //import FilterListIcon from 'material-ui-icons/FilterList';
 //import Collapse from 'material-ui/transitions/Collapse';
 //import Radio, { RadioGroup } from 'material-ui/Radio';
@@ -43,6 +44,12 @@ class Root extends Component {
 
       snapshot.forEach(doc => {
         map.push(doc.data());
+      });
+
+      console.log(map);
+
+      map.sort((a, b) => {
+        return parseInt(a.number) - parseInt(b.number);
       });
 
       this.setState({ dataSource: map });

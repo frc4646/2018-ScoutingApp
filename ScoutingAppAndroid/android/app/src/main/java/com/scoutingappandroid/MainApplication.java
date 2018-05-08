@@ -3,7 +3,11 @@ package com.scoutingappandroid;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import io.invertase.firebase.RNFirebasePackage;
+import io.invertase.firebase.firestore.RNFirebaseFirestorePackage;
+import io.invertase.firebase.auth.RNFirebaseAuthPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
+import com.github.yamill.orientation.OrientationPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
@@ -24,8 +28,17 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-            new VectorIconsPackage()
+          new RNFirebasePackage(),
+          new RNFirebaseFirestorePackage(),
+          new RNFirebaseAuthPackage(),
+          new OrientationPackage(),
+          new VectorIconsPackage()
       );
+    }
+
+    @Override
+    protected String getJSMainModuleName() {
+      return "index";
     }
   };
 

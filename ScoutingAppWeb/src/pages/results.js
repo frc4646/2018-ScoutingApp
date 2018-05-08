@@ -16,16 +16,7 @@ import FilterListIcon from 'material-ui-icons/FilterList';
 import Collapse from 'material-ui/transitions/Collapse';
 import { MenuItem } from 'material-ui/Menu';
 import Select from 'material-ui/Select';
-
-export const stringToBoolean = (string) => {
-  switch(string.toLowerCase().trim()) {
-      case "true": case "yes": case "1":
-        return true;
-      case "false": case "no": case "0": case null:
-        return false;
-      default: return Boolean(string);
-  }
-}
+import TextField from 'material-ui/TextField';
 
 //Notice: Initalizing all the properties like this will cause duplicate x_Count_Count indicies, however since the output is static, it does not cause any issues.
 const availableThingsToDo = {
@@ -43,6 +34,10 @@ const availableThingsToDo = {
   autoSwitchCube_Count: [],
   autoSwitchCubeCount: [],
   autoSwitchCubeCount_Count: [],
+  autoScaleCube: [],
+  autoScaleCube_Count: [],
+  autoScaleCubeCount: [],
+  autoScaleCubeCount_Count: [],
   endgameClimbLocation: [],
   endgameClimbLocation_Count: [],
   endgameClimbStatus: [],
@@ -91,6 +86,73 @@ const availableThingsToDo = {
   teleopScaleCube_Count: [],
 };
 
+export const stringToBoolean = (string) => {
+  switch(string.toLowerCase().trim()) {
+      case "true": case "yes": case "1":
+        return true;
+      case "false": case "no": case "0": case null:
+        return false;
+      default: return Boolean(string);
+  }
+}
+
+export const collate = (ds, tp) => {
+  let collate = availableThingsToDo;
+
+  console.log(ds, tp, 'Начало здесь')
+
+  ds.forEach((match) => {
+    let data = match.data;
+    //console.log(match.data);
+
+    for (const key in match.data) {
+      //console.log(key, data[key]);
+      collate[key].push(data[key]);
+    }
+
+    //console.log(collate);
+  });
+
+  for (const key in _.clone(collate)) {
+    console.log(typeof collate[key][0]);
+    if (typeof collate[key][0] === 'number') {
+      collate[`${key}_Count`] = [_.sum(collate[key]), 0];
+    } else if (typeof collate[key][0] === 'undefined') {
+      collate[`${key}_Count`] = ["0", "0"];
+    } else {
+      collate[`${key}_Count`] = (z => {
+        let count = _.countBy(collate[key]), a =
+        _.maxBy(
+          _.keys(
+            count
+          ),
+          (o) => count[o]
+        );
+
+        return [a, count[a]];
+      })();
+    }
+  }
+
+  collate = _.pickBy(collate, (z, key) => !(_.endsWith(key, '_Count_Count')))
+
+  console.log(collate);
+  (() => {
+    let q = {};
+    _.map(_.pickBy(collate, (z, key) => (_.endsWith(key, 'Count_Count'))), (w, f) => {
+      //console.log(w);
+      q[f] = _.head(w);
+    });
+    //q['endgameClimbStatus_Count'] = _.head(data);
+
+    console.log(q, "q");
+    
+    tp.set(q, {merge: true});
+  })()
+
+  return [collate, true];
+}
+
 class Root extends Component {
   state = {
     ds: [],
@@ -98,6 +160,7 @@ class Root extends Component {
     collapseOpen: false,
     queryBits: "",
     queryBitsSort: "",
+    queryBitsSortConstraint: "",
   };
 
   tp = {};
@@ -115,6 +178,12 @@ class Root extends Component {
           team: doc.id,
           data: doc.data(),
         });
+
+        let g = this.tp.doc(`${doc.id}`).collection('matches');
+        
+        g.get().then((da) => {
+          collate.apply(this, [da, g]);
+        });
       });
 
       data.sort(function (a, b) {
@@ -126,6 +195,32 @@ class Root extends Component {
         teamsPointer: this.tp,
       });
     });
+  }
+
+  updateQuery() {
+    console.log(this.state, 'Вы здесь');
+
+    if (!_.includes(['high', 'low', ''], this.state.queryBitsSort)) {
+      let operator = "==";
+      switch(this.state.queryBitsSort) {
+        case 'atleast':
+          operator = "<=";
+          break;
+        case 'morethan':
+          operator = "<";
+          break;
+        case 'lessthan':
+          operator = ">=";
+          break;
+      }
+
+      this.tp.where(`${this.state.queryBits}`, operator, this.state.queryBitsSortConstraint).get().then(function(querySnapshot) {
+        querySnapshot.forEach(function(doc) {
+          // doc.data() is never undefined for query doc snapshots
+          console.log(doc.id, " => ", doc.data());
+        });
+      })
+    }
   }
 
   getMatchItemState(name) {
@@ -148,31 +243,81 @@ class Root extends Component {
                   Query
                 </Typography>
                 <Typography type="body2" component="span">
-                  SELECT WHERE IS 
+                  SELECT TEAM WHERE 
                 </Typography>
-                <Select
-                  value={this.state.queryBits}
-                  onChange={(e) => this.setState({queryBits: e.target.value})}
-                >
-                  {_.map(_.pickBy(availableThingsToDo, (p, key) => !(_.endsWith(key, '_Count') || _.endsWith(key, 'Count'))), (z, arg2) => {
-                    return (
-                      <MenuItem value={false} key={Math.random()}>
-                        {_.startCase(arg2)}
-                      </MenuItem>
-                    );
-                  })}
-                </Select>
-                <Select
-                  value={this.state.queryBitsSort}
-                  onChange={(e) => this.setState({queryBitsSort: e.target.value})}
-                >
-                  <MenuItem value="low">
-                    Lowest
-                  </MenuItem>
-                  <MenuItem value="high">
-                    Highest
-                  </MenuItem>
-                </Select>
+                <div>
+                  <Select
+                    value={this.state.queryBits}
+                    onChange={(e) => {
+                      this.setState({queryBits: e.target.value});
+                      this.updateQuery()
+                    }}
+                  >
+                    {_.map({
+                      autoCross: [],
+                      autoSwitchCube: [],
+                      autoScaleCube: [],
+                      teleopAllianceSwitchCube: [],
+                      teleopExchangeCube: [],
+                      teleopDefense: [],
+                      teleopOpponentSwitchCube: [],
+                      teleopScaleCube: [],
+                      endgameClimbStatus: [],
+                    }, (z, key) => {
+                      return (
+                        <MenuItem value={key} key={Math.random()}>
+                          {_.startCase(key)}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                  <Select
+                    value={this.state.queryBitsSort}
+                    onChange={(e) => {
+                      this.setState({queryBitsSort: e.target.value})
+                      this.updateQuery()
+                    }}
+                  >
+                    {(() => {
+                      let h = [];
+                      switch (this.state.queryBits) {
+                        case "endgameClimbStatus":
+                          h = [
+                            {value: "is"}
+                          ];
+                          break;
+                        default:
+                          h = [
+                            {value: "low"},
+                            {value: "high"},
+                            {value: "atleast"},
+                            {value: "equal"},
+                            {value: "lessthan"},
+                            {value: "morethan"},
+                          ];
+                          break;
+                      }
+
+                      return h.map((o) => {
+                        return (
+                          <MenuItem key={'hmod' + Math.random()} value={o.value}>
+                            {_.startCase(o.value)}
+                          </MenuItem>
+                        )
+                      });
+                    })()}
+                  </Select>
+                  <TextField
+                    value={this.state.queryBitsSortConstraint}
+                    onChange={(e) => {
+                      this.setState({queryBitsSortConstraint: e.target.value});
+                      this.updateQuery()
+                    }}
+                    className={
+                      classNames(_.includes(['low', 'high', ''], this.state.queryBitsSort) ? classes.noDisplay : null)
+                    }
+                  />
+                </div>
               </div>
             </Collapse>
           </Paper>
@@ -197,11 +342,10 @@ class Root extends Component {
                 />
                 <CardContent>
                   <Typography type="headline" component="h2">
-                    {team.data.name}
+                    {team.data.nickname} {team.data.number}
                   </Typography>
                   <Typography component="p">
-                    Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging
-                    across all continents except Antarctica
+                    {team.data.rookieyear === (new Date).getFullYear() ? 'Rookie' : null}
                   </Typography>
                 </CardContent>
               </Card>
@@ -239,9 +383,48 @@ class ResultSpecific extends Component {
       let data = [];
 
       initialData.forEach(doc => {
+        let k = {
+          autoCross: false,
+          autoCubePickup: false,
+          autoCubePickupLocation: "pile",
+          autoCubeWrong: false,
+          autoCubeWrongCount: 0,
+          autoSwitchCube: false,
+          autoSwitchCubeCount: 0,
+          autoScaleCube: false,
+          autoScaleCubeCount: 0,
+          endgameClimbLocation: "center",
+          endgameClimbStatus: 0,
+          powerupBoost: false,
+          powerupBoostCount: 0,
+          powerupForce: false,
+          powerupForceCount: 0,
+          powerupLevitate: false,
+          startingPosition: "middle",
+          teleopAllianceSwitchCube: false,
+          teleopAllianceSwitchCubeCount: 0,
+          teleopAllianceSwitchCubeWrong: false,
+          teleopAllianceSwitchCubeWrongCount: 0,
+          teleopDefense: false,
+          teleopExchangeCube: false,
+          teleopExchangeCubeCount: 0,
+          teleopOpponentSwitchCube: false,
+          teleopOpponentSwitchCubeCount: 0,
+          teleopOpponentSwitchCubeWrong: false,
+          teleopOpponentSwitchCubeWrongCount: 0,
+          teleopScaleCube: false,
+          teleopScaleCubeCount: 0,
+          teleopScaleCubeWrong: false,
+          teleopScaleCubeWrongCount: 0,
+        };
+
+        if (doc.exists) {
+          k = doc.data();
+        }
+
         data.push({
           number: doc.id,
-          data: doc.data(),
+          data: k,
         });
       });
 
@@ -251,6 +434,12 @@ class ResultSpecific extends Component {
       });
 
       this.collate();
+      // let t = collate();
+
+      // this.setState({
+      //   collate: t[0],
+      //   doneYet: t[1],
+      // })
     });
 
     this.tp.get().then((initialData) => {
@@ -261,24 +450,27 @@ class ResultSpecific extends Component {
   }
 
   collate() {
+    console.log(this.state.ds);
     let collate = availableThingsToDo;
 
     this.state.ds.forEach((match) => {
       let data = match.data;
-      console.log(match.data);
+      //console.log(match.data);
 
       for (const key in match.data) {
-        console.log(key, data[key]);
+        //console.log(key, data[key]);
         collate[key].push(data[key]);
       }
 
-      console.log(collate);
+      //console.log(collate);
     });
 
     for (const key in _.clone(collate)) {
       console.log(typeof collate[key][0]);
       if (typeof collate[key][0] === 'number') {
         collate[`${key}_Count`] = [_.sum(collate[key]), 0];
+      } else if (typeof collate[key][0] === 'undefined') {
+        collate[`${key}_Count`] = ["0", "0"];
       } else {
         collate[`${key}_Count`] = (z => {
           let count = _.countBy(collate[key]), a =
@@ -294,12 +486,29 @@ class ResultSpecific extends Component {
       }
     }
 
+    collate = _.pickBy(collate, (z, key) => !(_.endsWith(key, '_Count_Count')))
+
     console.log(collate);
+    (() => {
+      let q = {};
+      _.map(_.pickBy(collate, (z, key) => (_.endsWith(key, 'Count_Count'))), (w, f) => {
+        //console.log(w);
+        q[f] = _.head(w);
+      });
+      //q['endgameClimbStatus_Count'] = _.head(data);
+
+      console.log(q, "q");
+      
+      this.tp.set(q, {merge: true});
+    })()
+
 
     this.setState({
       collate: collate,
       doneYet: true,
-    })
+    });
+
+    return [collate, true];
   }
 
   getMatchItemState(name) {
@@ -325,15 +534,17 @@ class ResultSpecific extends Component {
               height: 650
             }}
             image={team.robotImage || "/build/cat.jpg"}
-            title={team.name}
+            title={team.nickname}
           />
           <CardContent>
             <Typography type="display4" component="h2">
-              {team.name}
+              {team.nickname} {team.number}
             </Typography>
             <Typography component="p">
-              Lizards are a widespread group of squamate reptiles, with over 6,000 species, ranging
-              across all continents except Antarctica
+              {team.rookieyear === (new Date).getFullYear() ? 'Rookie' : `Rookie Year: ${team.rookieyear}`}
+            </Typography>
+            <Typography component="p">
+              {team.name}
             </Typography>
             <Divider style={{
               margin: '1rem 0'
@@ -351,6 +562,51 @@ class ResultSpecific extends Component {
                 }}>{'{Ability Type}: {Average Choice} - X / # of Matches they did that.'}</span>
                 <span>{'T# of {Ability Type}: Total Number across all matches they played.'}</span>
               </Typography>
+              <div>
+                <Typography type="title" component="p">
+                  Proven Capabilites <Typography type="caption" style={{display: 'inline-block'}}>(Blank means none)</Typography>
+                </Typography>
+                <Divider style={{
+                  marginBottom: '.5rem'
+                }} />
+                <Grid container style={{marginBottom: '2rem'}}>
+                  {stringToBoolean(collate['autoCross_Count'][0]) ?
+                    <Grid item xs={3}>
+                      <Typography type="body1">
+                        Auto Cross
+                      </Typography>
+                    </Grid>
+                  : null}
+                  {stringToBoolean(collate['autoSwitchCube_Count'][0]) ?
+                    <Grid item xs={3}>
+                      <Typography type="body1">
+                        Auto Cube on Switch
+                      </Typography>
+                    </Grid>
+                  : null}
+                  {stringToBoolean(collate['autoScaleCube_Count'][0]) ?
+                    <Grid item xs={3}>
+                      <Typography type="body1">
+                        Auto Cube on Scale
+                      </Typography>
+                    </Grid>
+                  : null}
+                  {stringToBoolean(collate['autoSwitchCube_Count'][0]) ?
+                    <Grid item xs={3}>
+                      <Typography type="body1">
+                        Auto Cube on Switch
+                      </Typography>
+                    </Grid>
+                  : null}
+                  {stringToBoolean(collate['teleopAllianceSwitchCube_Count'][0]) ?
+                    <Grid item xs={3}>
+                      <Typography type="body1">
+                        Teleop Cube on Switch
+                      </Typography>
+                    </Grid>
+                  : null}
+                </Grid>
+              </div>
               <div>
                 <Typography type="title">
                   Auto
@@ -386,6 +642,16 @@ class ResultSpecific extends Component {
                   </Grid>
                   <Grid item xs={3}>
                     <Typography type="body1">
+                      Auto Cube on Scale: {stringToBoolean(collate['autoScaleCube_Count'][0]) ? 'Yes' : 'No'} - {collate['autoScaleCube_Count'][1]} / {_.size(collate['autoScaleCube'])} 
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
+                      T# of Auto Cube on Scale: {collate['autoScaleCubeCount_Count'][0]}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Typography type="body1">
                       Auto Cube on Wrong Side: {stringToBoolean(collate['autoCubeWrong_Count'][0]) ? 'Yes' : 'No'} - {collate['autoCubeWrong_Count'][1]} / {_.size(collate['autoCubeWrong'])} 
                     </Typography>
                   </Grid>
@@ -409,7 +675,6 @@ class ResultSpecific extends Component {
                   marginBottom: '.5rem'
                 }} />
                 <Grid container>
-                  
                   <Grid item xs={3}>
                     <Typography type="body1">
                       Put Cube on Our Switch: {stringToBoolean(collate['teleopAllianceSwitchCube_Count'][0]) ? 'Yes' : 'No'} - {collate['teleopAllianceSwitchCube_Count'][1]} / {_.size(collate['teleopAllianceSwitchCube'])} 
@@ -501,6 +766,185 @@ class ResultSpecific extends Component {
                     </Typography>
                   </Grid>
                 </Grid>
+              </div>
+            </div>
+            <div style={{marginTop: '3rem'}}>
+              <Typography type="display1" gutterBottom>
+                Match a Match
+              </Typography>
+              <div>
+                {this.state.ds.map((s, indez) => {
+                  let valie = s.data;
+                  console.log(valie, indez, "Нет, ты здесь");
+
+                  return (
+                    <div key={`key-${Math.random()}`}>
+                      <Typography type="headline" gutterBottom>
+                        Match {s.number}
+                      </Typography>
+                      <div>
+                        <Typography type="title">
+                          Auto
+                        </Typography>
+                        <Divider style={{
+                          marginBottom: '.5rem'
+                        }} />
+                        <Grid container>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Auto Cross: {valie.autoCross ? 'Yes' : 'No'} 
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Auto Cube Pickup: {valie.autoCubePickup ? 'Yes' : 'No'} 
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Auto Cube Pickup Location: {_.capitalize(valie.autoCubePickupLocation) || 'undefined'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Auto Cube on Switch: {valie.autoSwitchCube ? 'Yes' : 'No'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              T# of Auto Cube on Switch: {valie.autoSwitchCubeCount}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Auto Cube on Scale: {valie.autoScaleCube_Count ? 'Yes' : 'No'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              T# of Auto Cube on Scale: {valie.autoScaleCubeCount}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Auto Cube on Wrong Side: {valie.autoCubeWrong ? 'Yes' : 'No'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              T# of Auto Cube on Wrong Side: {valie.autoCubeWrongCount}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Starting Position: {_.capitalize(valie.startingPosition)}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+                      </div>
+                      <div>
+                        <Typography type="title">
+                          Teleop
+                        </Typography>
+                        <Divider style={{
+                          marginBottom: '.5rem'
+                        }} />
+                        <Grid container>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Put Cube on Our Switch: {valie.teleopAllianceSwitchCube ? 'Yes' : 'No'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              T# of Cube on Our Switch: {valie.teleopAllianceSwitchCubeCount}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Put Cube on Opponent Switch: {valie.teleopOpponentSwitchCube ? 'Yes' : 'No'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              T# of Cube on Opponent Switch: {valie.teleopOpponentSwitchCubeCount}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Put Cube on Scale: {valie.teleopScaleCube ? 'Yes' : 'No'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              T# of Cubes on Scale: {valie.teleopScaleCubeCount}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Cube on Wrong Side of Our Switch: {valie.teleopAllianceSwitchCubeWrong ? 'Yes' : 'No'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              T# of Cubes on Wrong Side of Our Switch: {valie.teleopAllianceSwitchCubeWrongCount}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Cube on Wrong Side of Opp Switch: {valie.teleopOpponentSwitchCubeWrong ? 'Yes' : 'No'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              T# of Cubes on Wrong Side of Opp Switch: {valie.teleopOpponentSwitchCubeWrongCount}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Cube on Wrong Side of Scale: {valie.teleopAllianceSwitchCubeWrong ? 'Yes' : 'No'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              T# of Cubes on Wrong Side of Scale: {valie.teleopAllianceSwitchCubeWrongCount}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Played Defense: {valie.teleopDefense_Count ? 'Yes' : 'No'}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+                      </div>
+                      <div>
+                        <Typography type="title">
+                          Powerups
+                        </Typography>
+                        <Divider style={{
+                          marginBottom: '.5rem'
+                        }} />
+                        <Grid container>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Played Boost: {valie.powerupBoost ? 'Yes' : 'No'} Val: {valie.powerupBoostCount}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Played Force: {valie.powerupForce ? 'Yes' : 'No'} Val: {valie.powerupForceCount}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={3}>
+                            <Typography type="body1">
+                              Played Levitate: {valie.powerupLevitate ? 'Yes' : 'No'}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </CardContent>

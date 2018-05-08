@@ -6,15 +6,15 @@
 
 import React, { Component } from 'react';
 import {
-  AppRegistry,
-  NativeModules
+  AppRegistry
+  // NativeModules
 } from 'react-native';
 
 import App from './src/entry';
 
-const { UIManager } = NativeModules;
+// const { UIManager } = NativeModules;
 
-UIManager.setLayoutAnimationEnabledExperimental &&
-  UIManager.setLayoutAnimationEnabledExperimental(true);
+// UIManager.setLayoutAnimationEnabledExperimental &&
+//   UIManager.setLayoutAnimationEnabledExperimental(true);
 
 AppRegistry.registerComponent('ScoutingAppAndroid', () => App);

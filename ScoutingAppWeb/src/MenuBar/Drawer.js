@@ -29,6 +29,8 @@ import Dialog, {
 import TextField from 'material-ui/TextField';
 import Snackbar from 'material-ui/Snackbar';
 import * as firebase from 'firebase';
+import { db } from '../entry';
+import WatchJS from 'melanke-watchjs';
 
 class Root extends Component {
   state = {
@@ -124,8 +126,64 @@ class Root extends Component {
     }, 1000)
   }
 
+  importFromTba() {
+    let a = db.collection('matches');
+    let teams = db.collection('teams');
+
+    fetch("https://www.thebluealliance.com/api/v3/event/2018iacf/matches", {
+      headers: {
+        'X-TBA-Auth-Key': 'AfIrw52yJP2lcGkO4D3B0gABfvaAmqE6HJGxB3vSxUmNLQmgqDAZV6pKDm8wsg1S'
+      }
+    }).then(_ => _.json()).then(data => {
+      _.filter(data, a => a.comp_level == "qm").forEach(obj => {
+        a.doc(`${obj.match_number}`).set({
+          number: obj.match_number,
+          red: (() => {
+            let z = [];
+
+            _.map(obj.alliances.red.team_keys, k => {
+              z.push(_.trimStart(k, 'frc'));
+            });
+
+            return z;
+          })(),
+          blue: (() => {
+              let z = [];
+
+              _.map(obj.alliances.blue.team_keys, k => {
+                z.push(_.trimStart(k, 'frc'));
+              });
+
+              return z;
+            })()
+          })
+      });
+    });
+
+    fetch("https://www.thebluealliance.com/api/v3/event/2018iacf/teams", {
+      headers: {
+        'X-TBA-Auth-Key': '<id>'
+      }
+    }).then(_ => _.json()).then(data => {
+      console.log(data)
+      data.forEach(obj => {
+        teams.doc(`${obj.team_number}`).set({
+          name: obj.name,
+          nickname: obj.nickname,
+          rookieyear: obj.rookie_year,
+          number: obj.team_number
+        });
+      });
+    })
+  }
+
   render() {
     const { classes } = this.props;
+
+    WatchJS.watch(Consts, 'APP_NAME', () => {
+      this.closeDrawer();
+      this.forceUpdate();
+    });
 
     return (
       <div className={classes.root}>
@@ -150,6 +208,18 @@ class Root extends Component {
               >
                 {firebase.auth().currentUser !== null ? 'Logout' : 'Login'}
               </Button>
+              <IconButton
+                onClick={() => {
+                  this.setState({
+                    messageOpen: true,
+                    messageText: "Importing from TheBlueAlliance. Please Wait."
+                  });
+                  this.importFromTba()
+                }}
+                color="contrast"
+              >
+                <ChevronLeftIcon />
+              </IconButton>
               <Dialog
                 open={this.state.loginOpen}
                 onRequestClose={this.closeLogin}
@@ -180,7 +250,7 @@ class Root extends Component {
                       disabled={this.state.loggingIn}
                     />
                     <DialogActions>
-                      <Button onClick={this.login} color="primary">
+                      <Button onClick={this.login} color="primary" type="submit">
                         Login
                       </Button>
                     </DialogActions>
@@ -194,7 +264,8 @@ class Root extends Component {
                 }}
                 open={this.state.messageOpen}
                 autoHideDuration={4e3}
-                onRequestClose={(_, reason) => reason === 'clickaway' ? null : this.setState({messageOpen: false})}
+                onClose={() => this.setState({messageOpen: false})}
+                //onRequestClose={(_, reason) => reason === 'clickaway' ? null : this.setState({messageOpen: false})}
                 SnackbarContentProps={{
                   'aria-describedby': 'message-id',
                 }}

@@ -17,11 +17,15 @@ const config = {
         loader: 'babel-loader',
         exclude: /(node_modules)/,
         query: {
-          cacheDirectory: true,
+          cacheDirectory: false,
         },
       },
     ],
   },
+  devServer: {
+    hot: false,
+    port: 8080
+  }
 };
 
 module.exports = config;

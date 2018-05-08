@@ -64,6 +64,8 @@ class Root extends Component {
           autoCubeWrongCount: 0,
           autoSwitchCube: false,
           autoSwitchCubeCount: 0,
+          autoScaleCube: false,
+          autoScaleCubeCount: 0,
           endgameClimbLocation: "center",
           endgameClimbStatus: 0,
           powerupBoost: false,
@@ -102,7 +104,7 @@ class Root extends Component {
 
   listenOnTeamPointer() {
     this.state.teamDbPointer.onSnapshot((data) => {
-      console.log(data.data(), 'TeamPointerUpdate');
+      console.log(data.data(), 'Обновление указателя команды');
       this.setState({
         matchDataSource: data.data(),
       });
@@ -258,6 +260,72 @@ class Root extends Component {
                   classNames(classes.textCenter)
                 }>
                   <Typography type="body1">
+                    Placed Cube on Scale
+                  </Typography>
+                  <div className={classNames({
+                    [classes.noDisplay]: (!!this.getMatchItemState('autoScaleCube') || false) && (this.getMatchItemState('autoScaleCubeCount') > 0)
+                  })}>
+                    <Checkbox
+                      checked={!!this.getMatchItemState('autoScaleCube')}
+                      onChange={() => {
+                        if (!!!this.getMatchItemState('autoScaleCube') === true) {
+                          this.updateValue('autoScaleCubeCount', this.getMatchItemState('autoScaleCubeCount') + 1)
+                        } else {
+                          this.updateValue('autoScaleCubeCount', 0)
+                        }
+
+                        this.toggleCheck('autoScaleCube')                        
+                      }}
+                      value="autoScaleCube"
+                      name="autoScaleCube"
+                    />
+                  </div>
+                  <div className={classNames({
+                    [classes.noDisplay]: (!!!this.getMatchItemState('autoScaleCube') || false) || (this.getMatchItemState('autoScaleCubeCount') <= 0)
+                  })}>
+                    <FormControl>
+                      <IconButton
+                        style={{
+                          color: green[500]
+                        }}
+                        onClick={() => {
+                          this.updateValue(
+                            'autoScaleCubeCount',
+                            this.getMatchItemState('autoScaleCubeCount') + 1
+                          )
+                        }}
+                      >
+                        <AddCircleIcon/>
+                      </IconButton>
+                      <Typography >
+                        {this.getMatchItemState('autoScaleCubeCount')}
+                      </Typography>
+                      <IconButton
+                        style={{
+                          color: red[500]
+                        }}
+                        onClick={() => {
+                          if ((this.getMatchItemState('autoScaleCubeCount') - 1) === 0) {
+                            this.toggleCheck('autoScaleCube');
+                          }
+
+                          this.updateValue(
+                            'autoScaleCubeCount',
+                            this.getMatchItemState('autoScaleCubeCount') - 1
+                          )
+                        }}
+                      >
+                        <RemoveCircleIcon />
+                      </IconButton>
+                    </FormControl>
+                  </div>
+                </div>
+              </Grid>
+              <Grid item xs>
+                <div className={
+                  classNames(classes.textCenter)
+                }>
+                  <Typography type="body1">
                     Placed Cube on Wrong Side
                   </Typography>
                   <div className={classNames({
@@ -340,15 +408,6 @@ class Root extends Component {
                 </div>
               </Grid>
             </Grid>
-            {/* <Grid>
-              <Button
-                raised
-                color="primary"
-                className={classNames()}
-              >
-                Done
-              </Button>
-            </Grid> */}
           </Paper>
         </Grid>
         <Grid item xs={12}>
@@ -874,6 +933,23 @@ class Root extends Component {
                       <Typography>
                         {this.getMatchItemState('powerupBoostCount')}
                       </Typography>
+                      <IconButton
+                        style={{
+                          color: red[500]
+                        }}
+                        onClick={() => {
+                          if (this.getMatchItemState('powerupBoostCount') <= 0) {
+                            return;
+                          }
+
+                          this.updateValue(
+                            'powerupBoostCount',
+                            this.getMatchItemState('powerupBoostCount') - 1
+                          )
+                        }}
+                      >
+                        <RemoveCircleIcon />
+                      </IconButton>
                     </FormControl>
                   </div>
                   <div>
@@ -923,6 +999,23 @@ class Root extends Component {
                       <Typography>
                         {this.getMatchItemState('powerupForceCount')}
                       </Typography>
+                      <IconButton
+                        style={{
+                          color: red[500]
+                        }}
+                        onClick={() => {
+                          if (this.getMatchItemState('powerupForceCount') <= 0) {
+                            return;
+                          }
+
+                          this.updateValue(
+                            'powerupForceCount',
+                            this.getMatchItemState('powerupForceCount') - 1
+                          )
+                        }}
+                      >
+                        <RemoveCircleIcon />
+                      </IconButton>
                     </FormControl>
                   </div>
                   <div>
@@ -1008,7 +1101,6 @@ class Root extends Component {
               // console.log(this.props.history);              
             });
             // let nextMatch = null;/* (await Matches.get(this.props.match.params.match + 1)).data(); */
-            // console.log(thisMatch, nextMatch, 'sudoas');
 
           }}
         >

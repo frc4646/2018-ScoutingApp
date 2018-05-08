@@ -14,7 +14,7 @@ class Root extends Component {
           button
           onClick={() => {
             Consts.APP_NAME = 'Results';
-            this.props.history.push(`/results`)
+            this.props.history.push(`/results`);
           }}
         >
           <ListItemIcon>
